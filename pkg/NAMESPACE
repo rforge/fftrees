@@ -1,0 +1,7 @@
+useDynLib(fftrees)
+exportPattern("^[[:alpha:]]+")
+importFrom(Rcpp, evalCpp)
+import(methods)
+import(doSNOW)
+import(foreach)
+import(ggplot2)
