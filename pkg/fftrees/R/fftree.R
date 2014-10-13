@@ -564,62 +564,129 @@ setMethod("update", "fftree", function(object,data = NULL) {
 })
 
 
-#Converts tree data to dataframe
+#Plots the tree
 #' Plots \code{fftree}
 #'
-#' @name plot
+#' @name plot.fftree
+#' @aliases plot
 #' @param object fftree
-#' @param showBoldness logical, set to TRUE, if the boldness on the x-axis should be shown
-#' @param ... unused. Further parameter.
+#' @param Further parameter.
 #' 
 #' @seealso \code{\link{fftree}}
-plot.fftree <- function(object,showBoldness=FALSE,...) {   
+plot.fftree <- function(object,...) {   
+  
   fftree <- object
   
-  binarys <- do.call(rbind,lapply(fftree@fftcues, function(x) x@pred))
-  df <- cbind(getCueEfficiency(fftree,hideRest=T)[,1], binarys)
+  names               <- sapply(fftree@fftcues, function(x) toString(x,suppressNameBrackets = T,suppressThen = T, suppressName = F, suppressTest = F))
+  names.maxlen.index  <- which.max(nchar(names))
   
-  df[,1] <- do.call(rbind, lapply(fftree@fftcues, function(x) toString(x,T,T,F,F)))
-  n <- length(fftree@fftcues)
-  y <- n*2 + 2
+  binarys        <- sapply(fftree@fftcues, function(x) x@pred)
+  binarys.string <- sapply(binarys, toString)
+  n              <- length(fftree@fftcues)
   
-  xcue <- replicate(n,.5)
-  ycue <- seq(y-.5, .5  , length.out=n)
-              
-  ypred <- seq(y-1 , .5-1, length.out=n)
+  #------------------------------------------
+  # config of stuff
+  #------------------------------------------+
+  offset.x <- 1
+  offset.y <- 1
   
-  if(showBoldness){
-    xpred <- (fftree@classcounter/length(fftree@criterion@data)) * .5
-    xpred <- ifelse(df[,2],0.5+xpred,0.5-xpred)
-    xlabels <- c("100","50","0","50","100") 
-    ylabels <- NULL
+  min.y <- 0
+  max.y <- (-1-n) * offset.y
+  
+  min.x     <- 0
+  max.x     <- +offset.x
+  
+  vec.binarys.x <- NULL
+  vec.binarys.y <- NULL
+  vec.cues.x    <- NULL
+  vec.cues.y    <- NULL
+  
+  current.x <- min.x
+  current.y <- min.y
+  
+  for(b in binarys){
+    vec.cues.x <- c(vec.cues.x, current.x)
+    vec.cues.y <- c(vec.cues.y, current.y)
+    
+    #The next binary will be one step deeper than the current cue
+    vec.binarys.y <- c(vec.binarys.y, current.y - offset.y)
+    
+    if(b){
+      #Set the binary to the opposite: in this case to the left
+      vec.binarys.x <- c(vec.binarys.x, current.x - offset.x)
+      
+      #And wander to the right
+      current.x <- current.x + offset.x      
+    }else{
+      #Set the binary to the opposite, in this case to the right
+      vec.binarys.x <- c(vec.binarys.x, current.x + offset.x)
+      
+      #And wander to the left
+      current.x <- current.x - offset.x
+    }
+    
+    #After every step, we need to decrease the current.y value
+    current.y <- current.y - offset.y
+    
+  }
+  
+  #The last cue needs to have 2 exits.
+  if(b){
+    vec.binarys.x <- c(vec.binarys.x, current.x)
+    binarys.string <- c(binarys.string, "FALSE")
+    binarys        <- c(binarys,FALSE)
   }else{
-    xpred <- ifelse(df[,2],.75,.25)
-    xlabels <- NULL
+    vec.binarys.x <- c(vec.binarys.x, current.x)
+    binarys.string <- c(binarys.string, "TRUE")
+    binarys        <- c(binarys,TRUE)
   }
   
-  pl<- ggplot()+ 
-  scale_x_continuous(limits=c(0,1),labels=xlabels, name="") +
-  scale_y_continuous(limits=c(-.5,y), name="") +
-  scale_shape_discrete(solid=T) + 
+  #And the last binary
+  vec.binarys.y <- c(vec.binarys.y, current.y)
+  
+  #Calculate Boxes height and length:
+  cue.max.width   <- strwidth (  names[names.maxlen.index]  ,units = "inches") 
+  cue.max.height  <- strheight(  names[names.maxlen.index]  ,units = "inches") + .2
+  bin.max.width   <- strwidth (  "FALSE"  ,units = "inches")
+  bin.max.height  <- strheight(  "FALSE"  ,units = "inches") + .2
+  
+  plo <- qplot(geom="blank", x = vec.cues.x, y = vec.cues.y)
+  plo <- plo + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(),
+                     axis.line=element_blank(),
+                     axis.text.x=element_blank(),
+                     axis.text.y=element_blank(),
+                     axis.ticks=element_blank(),
+                     axis.title.x=element_blank(),
+                     axis.title.y=element_blank())
+  
+  for(i in 1:length(vec.cues.x)){
+    from.x <- vec.cues.x[i]
+    from.y <- vec.cues.y[i]
     
-  #line btween cues
-  geom_line(data=data.frame(df[,1]), x = xcue,  y = ycue) 
-
-  #line between cues and predictions
-  for(i in 1:n){
-    pl <- pl + geom_line(data=data.frame(c(xcue[i], xpred[i]),c(ycue[i],ypred[i])), x = c(xcue[i], xpred[i]), y=c(ycue[i],ypred[i])) 
+    to.x <- vec.binarys.x[i]
+    to.y <- vec.binarys.y[i]
+    
+    #Connect cue with binary
+    plo <- plo + annotate("line", x=c(from.x,to.x), y=c(from.y,to.y), lty=2, col="black") 
+    
+    if(i != length(vec.cues.x)){
+      plo <- plo + annotate("line", x=c(from.x,vec.cues.x[i+1]), y=c(from.y,vec.cues.y[i+1]), lty=1, col="black") 
+    }else{
+      plo <- plo + annotate("line", x=c(from.x,vec.binarys.x[i+1]), y=c(from.y,vec.binarys.y[i+1]), lty=1, col="black")     
+    }
   }
-  
-  pl <- pl + 
-    geom_rect(data=data.frame(df[,2]), xmin = xcue-.05,  ymax = ycue+.25, xmax = xcue+.05, ymin =ycue-.15, fill="white", alpha=1) + 
-    annotate("text", x = xcue,  y = ycue+.05, label=df[,1], size=4) + 
+  plo <- plo +   geom_rect(data = data.frame(names), aes(xmin = vec.cues.x - cue.max.width/2 , xmax = vec.cues.x + cue.max.width/2, 
+                                            ymin = vec.cues.y - cue.max.height/2, ymax = vec.cues.y + cue.max.height/2), fill = "grey80") + 
+    geom_text(data = data.frame(names), aes(x = vec.cues.x, y = vec.cues.y, label = names), size = 4) +  
     
-    geom_rect(data=data.frame(df[,2]), xmin = xpred-.04,  ymax = ypred, xmax = xpred+.04, ymin =ypred-.35, fill="turquoise2", alpha=.8) + 
-    geom_text(data=data.frame(df[,2]), x = xpred, y = ypred-.17 , label=df[,2], size=4) 
-  
-  return(pl)
     
+    
+    annotate("rect", xmin = vec.binarys.x - bin.max.width/2 , xmax = vec.binarys.x + bin.max.width/2, 
+                     ymin = vec.binarys.y - bin.max.height/2, ymax = vec.binarys.y + bin.max.height/2, fill = "snow") + 
+    
+    annotate("text",x = vec.binarys.x, y = vec.binarys.y, label = binarys.string, size = 4)
+    
+  return(plo)   
 }
 
 
