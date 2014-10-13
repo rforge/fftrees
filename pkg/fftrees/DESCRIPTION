@@ -6,7 +6,7 @@ Date: 2014-13-10
 Author: Marc Giesmann
 Maintainer: Marc Giesmann <marcarneg@gmail.com>
 Description: Package for Fast- and Frugal Tree building, analysis
-License: GPL
+License: CC BY 4.0
 Depends:
     doSNOW (>= 1.0.0),
     Rcpp (>= 0.11.0),
