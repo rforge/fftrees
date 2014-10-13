@@ -644,9 +644,10 @@ plot.fftree <- function(object,...) {
   #And the last binary
   vec.binarys.y <- c(vec.binarys.y, current.y)
   
+  
   #Calculate Boxes height and length:
-  cue.max.width   <- strwidth (  names[names.maxlen.index]  ,units = "inches") 
-  cue.max.height  <- strheight(  names[names.maxlen.index]  ,units = "inches") + .2
+  cue.max.width   <- strwidth (  names[names.maxlen.index]  ,units = "inches") - .5
+  cue.max.height  <- strheight(  names[names.maxlen.index]  ,units = "inches") + .35
   bin.max.width   <- strwidth (  "FALSE"  ,units = "inches")
   bin.max.height  <- strheight(  "FALSE"  ,units = "inches") + .2
   
