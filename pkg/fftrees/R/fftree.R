@@ -570,26 +570,47 @@ setMethod("update", "fftree", function(object,data = NULL) {
 #' @name plot.fftree
 #' @aliases plot
 #' @param object fftree
-#' @param Further parameter.
+#' @param ...
+#' @details 
+#' further parameters: \code{exits = c(true = "TRUE",false = "FALSE")}. By changing the string, it plots them instad of \code{TRUE} or \code{FALSE} on the exits.
+#' \code{offset.x = 1} and \code{offset.y = 1}. If you have troubles with too large texts and colliding boxes, set them > 1.
 #' 
 #' @seealso \code{\link{fftree}}
 plot.fftree <- function(object,...) {   
   
   fftree <- object
   
+  additionalparams <- list(...)
+  if(!is.null(additionalparams$exits)){
+    exits <- additionalparams$exits
+  }else{
+    exits <- c(true = "TRUE", false = "FALSE")
+  }
+  
+  if(!is.null(additionalparams$offset.x)){
+    offset.x <- additionalparams$offset.x
+  }else{
+    offset.x <- 1
+  }
+  
+  if(!is.null(additionalparams$offset.y)){
+    offset.y <- additionalparams$offset.y
+  }else{
+    offset.y <- 1
+  }
+  
   names               <- sapply(fftree@fftcues, function(x) toString(x,suppressNameBrackets = T,suppressThen = T, suppressName = F, suppressTest = F))
   names.maxlen.index  <- which.max(nchar(names))
   
   binarys        <- sapply(fftree@fftcues, function(x) x@pred)
-  binarys.string <- sapply(binarys, toString)
+  binarys.string <- sapply(binarys, function(x) if(x){toString(exits['true'])}else{toString(exits['false'])})
+  binarys.maxlen.index  <- which.max(nchar(binarys.string))
+  
   n              <- length(fftree@fftcues)
   
   #------------------------------------------
   # config of stuff
   #------------------------------------------+
-  offset.x <- 1
-  offset.y <- 1
-  
   min.y <- 0
   max.y <- (-1-n) * offset.y
   
@@ -633,11 +654,11 @@ plot.fftree <- function(object,...) {
   #The last cue needs to have 2 exits.
   if(b){
     vec.binarys.x <- c(vec.binarys.x, current.x)
-    binarys.string <- c(binarys.string, "FALSE")
+    binarys.string <- c(binarys.string, exits['false'])
     binarys        <- c(binarys,FALSE)
   }else{
     vec.binarys.x <- c(vec.binarys.x, current.x)
-    binarys.string <- c(binarys.string, "TRUE")
+    binarys.string <- c(binarys.string, exits['true'])
     binarys        <- c(binarys,TRUE)
   }
   
@@ -648,8 +669,8 @@ plot.fftree <- function(object,...) {
   #Calculate Boxes height and length:
   cue.max.width   <- strwidth (  names[names.maxlen.index]  ,units = "inches") - .5
   cue.max.height  <- strheight(  names[names.maxlen.index]  ,units = "inches") + .35
-  bin.max.width   <- strwidth (  "FALSE"  ,units = "inches")
-  bin.max.height  <- strheight(  "FALSE"  ,units = "inches") + .2
+  bin.max.width   <- strwidth (  binarys.string[binarys.maxlen.index]  ,units = "inches")
+  bin.max.height  <- strheight(  binarys.string[binarys.maxlen.index]  ,units = "inches") + .2
   
   plo <- qplot(geom="blank", x = vec.cues.x, y = vec.cues.y)
   plo <- plo + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_blank(),
@@ -683,7 +704,7 @@ plot.fftree <- function(object,...) {
     
     
     annotate("rect", xmin = vec.binarys.x - bin.max.width/2 , xmax = vec.binarys.x + bin.max.width/2, 
-                     ymin = vec.binarys.y - bin.max.height/2, ymax = vec.binarys.y + bin.max.height/2, fill = "snow") + 
+                     ymin = vec.binarys.y - bin.max.height/2, ymax = vec.binarys.y + bin.max.height/2, fill = "snow", linetype = 2) + 
     
     annotate("text",x = vec.binarys.x, y = vec.binarys.y, label = binarys.string, size = 4)
     
