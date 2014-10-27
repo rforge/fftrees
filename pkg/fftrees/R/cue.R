@@ -206,7 +206,7 @@ setMethod("update", "cue", function(object, data) {
 #'
 #' @param inputvector Data, which should be predicted. 
 #' @param allSplitValues Numeric value; at which the prediction switches
-#' @param allTests character-/ stringvector, which describes the binarization- operator. ('==', '<=', '<', etc.)
+#' @param allTests character-/ stringvector, which describes the binarization- operator. ('==', '<=', '<', etc.). \code{NULL} means "Autodetect". Autodetect will use c("<=",">") for linear data (more than 2 \code{unique} values in \code{inputvector}) and c("==") for dichotome data (2  \code{unique} values in \code{inputvector})
 #' @param allPredictions Logical value; what the cue will predict, if the \code{test} at the particular \code{split} succeeds
 #' @param name Charactervector; how the cues should be named
 #' 
@@ -226,7 +226,7 @@ cue.getAllVariants <- function(inputvector, allSplitValues = NULL, allTests = NU
       if(length(allSplitValues) == 2){
         allTests <- "=="
       }else{
-        allTests <- c("<=") #all possible tests
+        allTests <- c("<=",">") #all possible tests
       }
     }
     

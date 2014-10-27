@@ -27,7 +27,7 @@ Sdt <- function(hi,...) UseMethod("Sdt")
 #' @references \url{http://kangleelab.com/signal detection theory.html} \url{http://en.wikipedia.org/wiki/Matthews_correlation_coefficient}
 #' @details This function returns: hitrate (sensitivity/TPR), specifity (true negative rate/SPC), false alarm rate (fall-out/FPR), false discovery rate (FDR), 
 #' an estimated d' (qnorm(hitrate)-qnorm(false alarm rate)) and the MCC, the
-#' "Matthews correlation efficient".
+#' "Matthews correlation efficient", c-bias (c < 0 -> liberal; c > 0 -> conservative).
 #'  
 #' Some results are adjusted, to make them calculatable. If one of the contingency-values \code{hi}, \code{fa}, \code{mi} or \code{cr} equals zero, 
 #' all of them will gain .25: \code{Sdt(1, 0, 2, 4)} equals \code{Sdt(1.25, .25, 2.25, 4.25)}. 
@@ -99,7 +99,7 @@ Sdt.default <-  function(hi,fa,mi,cr){
   #beta_ratio <- exp(beta_natLog)
   
   #criterion c
-  #C <- -.5*(qh + qf)
+  C <- -.5*(qh + qf)
   
   #normalized c (c')
   #C_norm <- C/dPrime
@@ -109,7 +109,7 @@ Sdt.default <-  function(hi,fa,mi,cr){
                     hiRate = hitrate, spec = specifity, faRate = falsealarmrate, fdRate = falsediscoveryrate,
                     dPr = dPrime, MCC = MCC,
                     #betaNl = beta_natLog, betaRa = beta_ratio,
-                    #crit = C, critNrm = C_norm ,
+                    c = C, #cNrm = C_norm ,
                     percCorr = per_correct)) 
   
 }
@@ -135,38 +135,32 @@ Sdt.logical <- function(criterion, prediction){
   return(Sdt(hi,fa,mi,cr))
 }
 
-######################
-#  Extended generic methods from base
-######################
 
-#GET- method
-# PRINT- Method, std-instance
-# setMethod("as.vector", "sdt", function(x) {
-#   object <- x  
-#   return( c(
-#       hits  = (object@hi),
-#       fa    = (object@fa),
-#       mi    = (object@mi),
-#       cr    = (object@cr),
-#       
-#       #now all variants,
-#       hitRate  = object@hiRate,  #hitrate
-#       faRate   = object@faRate, #false alarm rate
-#       dPr      = object@dPr,     #dPrime
-#       betaNl   = object@betaNl,  #beta nat log
-#       betaRa   = object@betaRa,  #beta ratio
-#       crit     = object@crit,    #crit
-#       critNrm  = object@critNrm, #crit Norm
-#       percCorr = object@percCorr #percent correct
-#       )
-#     
-#   )
-#   
-# } )
 
-# # PRINT- Method, std-instance
-# setMethod("show", "sdt", function(object) {
+# #' Class roc
+# #'
+# #' Class \code{roc}- all possible variations of a tree, and their respective \code{Sdt} values
+# #'
+# #' @name roc-class
+# #' @rdname roc-class
+# #' @exportClass roc
+# setClass(Class = "roc", 
+#          slots = c( original  = "fftree",
+#                     trees     = "list",   #inputvector
+#                     df        = "dataframe"
+#          ),
+#          contains = c("fftree", "dataframe")
+# )
+# 
+# #' Creates a 'Reciever Operator Characteristic' vector of a given \code{\link{Fftree}}
+# #'
+# #' @name Roc
+# #'
+# #' @param fftree Object of type \code{\link{fftree}}
+# #' 
+# #' @return object of type \code{\link{roc}}
+# Roc <- function(fftree){
 #   
-#   print(as.vector(object), quote = FALSE)
 #   
-# } )
+#   
+# }
