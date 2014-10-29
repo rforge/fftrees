@@ -400,6 +400,8 @@ fftm.maximize <- function(tree, whatToMaximize, savebest = 1, cluster = NULL, co
        return(resultobject)
     }
     
+    
+    
     #If we got this far, this means, this cue did something! Judge it!
     #Get SDT rating
     rating.sdt <- Sdt(tree.worker)

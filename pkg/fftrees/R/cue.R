@@ -6,9 +6,8 @@
 # 27.04.2014; Marc Giesmann
 ######################################
 
-fftest.global.env <- new.env()
-fftest.global.env$rawcue <- NULL
-
+.fftest.global.env <- new.env()
+.fftest.global.env$rawcue <- NULL
 
 #' Class cue
 #'
@@ -26,6 +25,7 @@ setClass(Class = "cue",
                     result   = "logical",   #internal result vector
                     predicts = "logical",   #vector, where cue predicted stuff
                     name     = "character"  #optional: name
+                    #checksum = "integer"    #crc32 as integer checksum.
                   ),
          contains = c("logical")
          )
@@ -286,17 +286,16 @@ cue.getAllVariants <- function(inputvector, allSplitValues = NULL, allTests = NU
 Cue<-function(inputvector, test = "<=", split = 0, pred = TRUE, name = ""){
   
   # return instance of cue
-  if(is.null(fftest.global.env$rawcue)){
-    fftest.global.env$rawcue <- new("cue",test = "<=", split = 0, pred = TRUE, name = "RAWCUE")
+  if(is.null(.fftest.global.env$rawcue)){
+    .fftest.global.env$rawcue <- new("cue",test = "<=", split = 0, pred = TRUE, name = "RAWCUE")
   }
   
-  C <- fftest.global.env$rawcue
+  C <- .fftest.global.env$rawcue
   slot(C,"test",check=F)  <- test
   slot(C,"split",check=F) <- split
   slot(C,"pred",check=F)  <- pred
   slot(C,"name",check=F)  <- name
-  
-  
+   
   #C <- new("cue",test = test, split = split, pred = pred, name = name)
   
   #update (calculate prediciton data) and return
@@ -304,4 +303,15 @@ Cue<-function(inputvector, test = "<=", split = 0, pred = TRUE, name = ""){
 }
 
 
-
+# isCueOverlapping <- function(cueX,cueY){
+#   
+#   #If checksums don't match cues definitly don't overlap
+#   if(cueX@checksum != cueY@checksum){
+#     return(F)
+#   }
+#   
+#   #Now check for overlapping arguments by showing that they predict different
+#   #rows
+#   return(all(c(cueY@predicts != cueX@predicts)))
+#   
+# }
