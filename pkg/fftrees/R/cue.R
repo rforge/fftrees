@@ -6,7 +6,7 @@
 # 27.04.2014; Marc Giesmann
 ######################################
 
-.fftest.global.env <- new.env()
+.fftest.global.env        <- new.env()
 .fftest.global.env$rawcue <- NULL
 
 #' Class cue
@@ -18,13 +18,14 @@
 #' @rdname cue-class
 #' @exportClass cue
 setClass(Class = "cue", 
-         slots = c( data     = "numeric",   #inputvector
-                    test     = "character", #test-case  parameter
-                    split    = "numeric",   #splitvalue parameter
-                    pred     = "logical",   #predict- parameter
-                    result   = "logical",   #internal result vector
-                    predicts = "logical",   #vector, where cue predicted stuff
-                    name     = "character"  #optional: name
+         slots = c( data           = "numeric",   #inputvector
+                    test           = "character", #test-case  parameter
+                    split          = "numeric",   #splitvalue parameter
+                    pred           = "logical",   #predict- parameter
+                    result         = "logical",   #internal result vector
+                    predicts       = "logical",   #vector, where cue predicted stuff
+                    name           = "character", #optional: name
+                    uniquepredicts = "logical"    #named vector with uniques of given data and prediction
                     #checksum = "integer"    #crc32 as integer checksum.
                   ),
          contains = c("logical")
@@ -164,23 +165,18 @@ setMethod("predict", "cue", function(object, newdata = NULL) {
 setMethod("update", "cue", function(object, data) {
   if (object@test == "<") {
     slot(object,"result",check=F)  <- (object@pred == (data < object@split))
-    #object@result <- (object@pred == (data < object@split))
     
   }else if (object@test == ">"){
     slot(object,"result",check=F)  <- (object@pred == (data > object@split))
-    #object@result <-(object@pred == (data > object@split))
     
   }else if (object@test == "=="){
     slot(object,"result",check=F)  <- (object@pred == (data == object@split))
-    #object@result <-(object@pred == (data == object@split))
     
   }else if (object@test == ">="){
     slot(object,"result",check=F)  <- (object@pred == (data >= object@split))
-    #object@result <-(object@pred == (data >= object@split))
     
   }else if (object@test == "<="){
     slot(object,"result",check=F)  <- (object@pred == (data <= object@split))
-    #object@result <-(object@pred == (data <= object@split))
     
   }else {
     #Error
@@ -188,12 +184,15 @@ setMethod("update", "cue", function(object, data) {
   }
   
   #save data
-  #object@data     <- data
   slot(object,"data",check=F) <- data
   
   #cue predicted there effectivly, where pred == result
-  #object@predicts <- (object@pred == object@result)
   slot(object,"predicts",check=F) <- (object@pred == object@result)
+  
+  pred.unique                           <- (object@pred == predict(object, unique(data)))
+  names(pred.unique)                    <- unique(data)
+  slot(object,"uniquepredicts",check=F) <- pred.unique
+  
   return(object)
 })
 
@@ -265,6 +264,43 @@ cue.getAllVariants <- function(inputvector, allSplitValues = NULL, allTests = NU
   return(cues)
 }
 
+.cuelist.normalize <- function(clist){
+  if(!is.list(clist)){
+    stop("Parameter clist has to be of type 'list'")
+  }
+  
+  
+  clist <- lapply(clist, function(cue){
+    if(cue@test == "<"){
+      if(cue@split == min(cue@data)){
+        return(NULL)
+      }else{
+        uniquedata <- sort(unique(cue@data), decreasing = F)
+        cue@split  <- uniquedata[which(uniquedata == cue@split) - 1]
+        cue@test   <- "<="
+        return(cue)
+      }
+    }
+    
+    
+    if(cue@test == ">"){
+      if(cue@split == max(cue@data)){
+        return(NULL)
+      }else{
+        uniquedata <- sort(unique(cue@data), decreasing = F)
+        cue@split  <- uniquedata[which(uniquedata == cue@split) + 1]
+        cue@test   <- ">="
+        return(cue)
+      }
+    }
+    
+    
+    return(cue)
+  })
+  
+  return(clist[! sapply(clist,is.null)])
+}
+
 #' Creates a cue.
 #'
 #' A \code{cue} is an S4 object, that represents a node in a tree.
@@ -301,17 +337,3 @@ Cue<-function(inputvector, test = "<=", split = 0, pred = TRUE, name = ""){
   #update (calculate prediciton data) and return
   return ( update(C, inputvector)  )
 }
-
-
-# isCueOverlapping <- function(cueX,cueY){
-#   
-#   #If checksums don't match cues definitly don't overlap
-#   if(cueX@checksum != cueY@checksum){
-#     return(F)
-#   }
-#   
-#   #Now check for overlapping arguments by showing that they predict different
-#   #rows
-#   return(all(c(cueY@predicts != cueX@predicts)))
-#   
-# }

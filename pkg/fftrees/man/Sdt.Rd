@@ -41,7 +41,7 @@ Creates a 'Signal Detection Theory' vector
 \details{
 This function returns: hitrate (sensitivity/TPR), specifity (true negative rate/SPC), false alarm rate (fall-out/FPR), false discovery rate (FDR),
 an estimated d' (qnorm(hitrate)-qnorm(false alarm rate)) and the MCC, the
-"Matthews correlation efficient".
+"Matthews correlation efficient", c-bias (c < 0 -> liberal; c > 0 -> conservative).
 
 Some results are adjusted, to make them calculatable. If one of the contingency-values \code{hi}, \code{fa}, \code{mi} or \code{cr} equals zero,
 all of them will gain .25: \code{Sdt(1, 0, 2, 4)} equals \code{Sdt(1.25, .25, 2.25, 4.25)}.

@@ -1,7 +1,7 @@
 Package: fftrees
 Type: Package
 Title: Fast- and Frugal Tree Analysis
-Version: 1.0.3
+Version: 1.0.4
 Date: 2014-13-10
 Author: Marc Giesmann
 Maintainer: Marc Giesmann <marcarneg@gmail.com>

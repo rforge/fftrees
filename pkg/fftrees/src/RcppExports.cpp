@@ -5,6 +5,22 @@
 
 using namespace Rcpp;
 
+// isCueAppendable
+bool isCueAppendable(S4 fftree, Rcpp::List cuelist);
+RcppExport SEXP fftrees_isCueAppendable(SEXP fftreeSEXP, SEXP cuelistSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< S4 >::type fftree(fftreeSEXP );
+        Rcpp::traits::input_parameter< Rcpp::List >::type cuelist(cuelistSEXP );
+        bool __result = isCueAppendable(fftree, cuelist);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // updateFftree
 S4 updateFftree(S4 fftree);
 RcppExport SEXP fftrees_updateFftree(SEXP fftreeSEXP) {

@@ -11,7 +11,7 @@ cue.getAllVariants(inputvector, allSplitValues = NULL, allTests = NULL,
 
 \item{allSplitValues}{Numeric value; at which the prediction switches}
 
-\item{allTests}{character-/ stringvector, which describes the binarization- operator. ('==', '<=', '<', etc.)}
+\item{allTests}{character-/ stringvector, which describes the binarization- operator. ('==', '<=', '<', etc.). \code{NULL} means "Autodetect". Autodetect will use c("<=",">") for linear data (more than 2 \code{unique} values in \code{inputvector}) and c("==") for dichotome data (2  \code{unique} values in \code{inputvector})}
 
 \item{allPredictions}{Logical value; what the cue will predict, if the \code{test} at the particular \code{split} succeeds}
 

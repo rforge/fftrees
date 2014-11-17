@@ -141,6 +141,9 @@ Fftm.default <-  function(formula, method, data, criterion=NULL, autoprune=TRUE,
     }
   }
   
+  ###### NORMALIZE CUELIST
+  cuelist <- .cuelist.normalize(cuelist)
+  
   ####### CREATE TREE
   tree <- Fftree(criterion=criterion,fftcues=cuelist,treename=toString(formula))
   tree@crossvalidationdata <- cv.list
@@ -384,23 +387,31 @@ fftm.maximize <- function(tree, whatToMaximize, savebest = 1, cluster = NULL, co
     
     #Version 2
     clist <- cuelist[ x ]
+    #Check if cue is appendable- it shouldn't be lazy and shouldn't predict the same values
+    #as it's predecessors (Age > 10 shouldn't be followed by Age > 11)
+    if(! .isCueAppendable(tree.worker, clist) ){
+           resultobject[CONST_SKIP] <- TRUE
+           resultobject[CONST_SAVE] <- FALSE
+           return(resultobject)
+    }
+    
+    
     tree.worker <- updateFftree2(tree.worker, clist)
     
     #Most important: if this cue didn't predict (Cue-Boldbess = 0) anything, then just skip, and don't save.
     #Nothing was done by this one
     if(!tree.worker@classcounter[length(x)]){
-      resultobject[CONST_SKIP] <- TRUE
-      resultobject[CONST_SAVE] <- FALSE
-      return(resultobject)
+     resultobject[CONST_SKIP] <- TRUE
+     resultobject[CONST_SAVE] <- FALSE
+     return(resultobject)
     }
     
-    if(isCueTrivial(tree.worker, clist)){
-       resultobject[CONST_SKIP] <- TRUE
-       resultobject[CONST_SAVE] <- FALSE
-       return(resultobject)
-    }
-    
-    
+    #Check if last cue is trivial
+#     if(isCueTrivial(tree.worker, clist)){
+#        resultobject[CONST_SKIP] <- TRUE
+#        resultobject[CONST_SAVE] <- FALSE
+#        return(resultobject)
+#     }
     
     #If we got this far, this means, this cue did something! Judge it!
     #Get SDT rating

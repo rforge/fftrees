@@ -85,3 +85,43 @@ fftm.Titanic.data <- function(){
   
   return(data.frame(expTiData))
 }
+
+
+#' Prepares Titanic data for fftm
+#'
+#' @name fftm.Titanic.data
+#' @return data.frame with modified titanic data
+#' @seealso \code{\link{Fftm}}
+#' ...
+fftm.UCBAdmissions.data <- function(){
+  data(UCBAdmissions)
+  #Get Titanic Data
+  ucbData <- as.data.frame(UCBAdmissions,stringsAsFactors=F)
+  
+  #Extract Columns with Freq > 0 (the others aren't interesting)
+  ucbData <- ucbData[ucbData$Freq > 0,]
+  
+  #Make linear data
+  ucbData[ucbData$Dept == "A" ,"Dept"] <- 1
+  ucbData[ucbData$Dept == "B" ,"Dept"] <- 2
+  ucbData[ucbData$Dept == "C" ,"Dept"] <- 3
+  ucbData[ucbData$Dept == "D" ,"Dept"] <- 4
+  ucbData[ucbData$Dept == "E" ,"Dept"] <- 5
+  ucbData[ucbData$Dept == "F" ,"Dept"] <- 6
+  
+  ucbData[ucbData$Gender == "Female", "Gender"] <- 1
+  ucbData[ucbData$Gender == "Male"  , "Gender"] <- 2
+  
+  ucbData[ucbData$Admit == "Rejected", "Admit"] <- 1
+  ucbData[ucbData$Admit == "Admitted", "Admit"] <- 2
+  
+  
+  #Convert all columns to numeric
+  ucbData <- as.data.frame(apply(ucbData,MARGIN=c(2),as.numeric))
+  
+  #Expand Frequency
+  expUcbData <- do.call(rbind, apply(ucbData,MARGIN=c(1), function(x) matrix(data=rep(x[1:3], x[4]), ncol=3, byrow=TRUE)))
+  colnames(expUcbData) <- colnames(as.data.frame(UCBAdmissions)[-4])
+  
+  return(data.frame(expUcbData))
+}
